@@ -1,0 +1,831 @@
+paths:
+  /api/v1/schema/draft-postman-collection/:
+    post:
+      summary: Create a new draft postman collection
+      tags:
+        - Schema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: JSON string content
+      responses:
+        '201':
+          description: Draft postman collection created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftPostmanCollection'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    get:
+      summary: List all draft postman collections created by the current user
+      tags:
+        - Schema
+      responses:
+        '200':
+          description: List of draft postman collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DraftPostmanCollection'
+
+  /api/v1/schema/draft-postman-collection/{id}:
+    get:
+      summary: Retrieve a draft postman collection by ID
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Draft postman collection ID
+      responses:
+        '200':
+          description: Draft postman collection details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftPostmanCollection'
+        '404':
+          description: Not found or no permission
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error_code:
+                    type: string
+                  message:
+                    type: string
+  /api/v1/schema/:
+    get:
+      summary: List schemas
+      tags:
+        - Schema
+      description: |
+        List schemas that the user has access to through workspace membership.
+        Query parameters:
+        - search: Search in name and description
+        - page: Page number for pagination (optional)
+        - per_page: Number of items per page (optional)
+        - workspaces: Comma-separated list of workspace IDs to filter by (optional)
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
+          description: Search in name and description
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number for pagination
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          required: false
+          description: Number of items per page
+        - in: query
+          name: workspaces
+          schema:
+            type: string
+          required: false
+          description: Comma-separated list of workspace IDs to filter by
+      responses:
+        '200':
+          description: List of schemas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Schema'
+                  count:
+                    type: integer
+                  page:
+                    type: integer
+                  per_page:
+                    type: integer
+                  total_pages:
+                    type: integer
+    post:
+      summary: Create a new schema
+      tags:
+        - Schema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaCreate'
+      responses:
+        '201':
+          description: Schema created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+
+  /api/v1/schema/{id}/:
+    put:
+      summary: Update a schema (full update)
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Schema ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaUpdate'
+      responses:
+        '200':
+          description: Schema updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    patch:
+      summary: Partially update a schema
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Schema ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaUpdate'
+      responses:
+        '200':
+          description: Schema updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/v1/schema/slug/{slug}/:
+    get:
+      summary: Retrieve a schema by slug
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: slug
+          schema:
+            type: string
+          required: true
+          description: Schema slug
+      responses:
+        '200':
+          description: Schema details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        '401':
+          description: Authentication required for private schemas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Schema not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+openapi: 3.0.1
+info:
+  title: Auth API
+  version: "1.0.0"
+  description: User authentication endpoints (login, signup)
+  /api/v1/user/auth/login/:
+    post:
+      summary: User login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: StrongPassword123!
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pk:
+                    type: integer
+                  email:
+                    type: string
+                  full_name:
+                    type: string
+                  system_role:
+                    type: integer
+                  avatar_url:
+                    type: string
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error_code:
+                    type: string
+                  message:
+                    type: string
+
+  /api/v1/user/auth/signup/:
+    post:
+      summary: User signup
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - full_name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: StrongPassword123!
+                full_name:
+                  type: string
+                  example: John Doe
+      responses:
+        '201':
+          description: Signup successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  full_name:
+                    type: string
+                  system_role:
+                    type: integer
+                  avatar_url:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+
+  /api/v1/user/users/search/:
+    get:
+      summary: Search users
+      tags:
+        - User
+      parameters:
+        - in: query
+          name: search_q
+          schema:
+            type: string
+          required: false
+          description: Search query (email or full name)
+        - in: query
+          name: exclude_ids
+          schema:
+            type: string
+          required: false
+          description: Comma-separated list of user IDs to exclude
+      responses:
+        '200':
+          description: List of users matching the search
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleUser'
+
+  /api/v1/user/users/:
+    post:
+      summary: Create a user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/v1/user/workspaces/:
+    get:
+      summary: List workspaces the current user is a member of
+      tags:
+        - Workspace
+      responses:
+        '200':
+          description: List of workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workspace'
+    post:
+      summary: Create a workspace
+      tags:
+        - Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceCreate'
+      responses:
+        '201':
+          description: Workspace created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+
+  /api/v1/user/workspaces/{id}/:
+    get:
+      summary: Retrieve a workspace by its ID
+      tags:
+        - Workspace
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Workspace details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceWithMembers'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+
+  /api/v1/user/workspaces/simple/:
+    get:
+      summary: List all workspaces (simple)
+      tags:
+        - Workspace
+      responses:
+        '200':
+          description: List of workspaces (id and name only)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleWorkspace'
+
+  /api/v1/schema/:
+    get:
+      summary: List schemas the user has access to
+      tags:
+        - Schema
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
+          description: Search in name and description
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Page number for pagination
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          required: false
+          description: Number of items per page
+        - in: query
+          name: workspaces
+          schema:
+            type: string
+          required: false
+          description: Comma-separated list of workspace IDs to filter by
+      responses:
+        '200':
+          description: List of schemas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Schema'
+                  count:
+                    type: integer
+                  page:
+                    type: integer
+                  per_page:
+                    type: integer
+                  total_pages:
+                    type: integer
+    post:
+      summary: Create a new schema
+      tags:
+        - Schema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaCreate'
+      responses:
+        '201':
+          description: Schema created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+
+  /api/v1/schema/{id}/:
+    put:
+      summary: Update a schema (full update)
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaCreate'
+      responses:
+        '200':
+          description: Schema updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    patch:
+      summary: Partially update a schema
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaCreate'
+      responses:
+        '200':
+          description: Schema updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    get:
+      summary: Retrieve a schema by its ID
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Schema details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/v1/schema/slug/{slug}/:
+    get:
+      summary: Retrieve a schema by its slug
+      tags:
+        - Schema
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schema details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+components:
+  schemas:
+    SimpleUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        full_name:
+          type: string
+    User:
+      allOf:
+        - $ref: '#/components/schemas/SimpleUser'
+        - type: object
+          properties:
+            avatar_url:
+              type: string
+            system_role:
+              type: integer
+            status:
+              type: integer
+            created_at:
+              type: string
+              format: date-time
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        hosts:
+          type: array
+          items:
+            type: string
+    WorkspaceCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        hosts:
+          type: array
+          items:
+            type: string
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              role:
+                type: integer
+    WorkspaceWithMembers:
+      allOf:
+        - $ref: '#/components/schemas/Workspace'
+        - type: object
+          properties:
+            members:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: integer
+    SimpleWorkspace:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    Schema:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        scope:
+          type: integer
+        yaml_content:
+          type: string
+        slug:
+          type: string
+        created_by:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        workspace:
+          type: integer
+    SchemaCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        scope:
+          type: integer
+        yaml_content:
+          type: string
+        workspace:
+          type: integer
