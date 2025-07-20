@@ -30,13 +30,13 @@ def list_schemas(search: str = None, page: int = None, per_page: int = None, wor
 
 # Schema: Create schema
 @mcp.tool()
-def create_schema(name: str, description: str = None, scope: int = None, yaml_content: str = None, workspace: int = None) -> dict:
-    """Create a new schema"""
+def create_schema(name: str, description: str = None, scope: int = None, json_content: dict = None, workspace: int = None) -> dict:
+    """Create a new schema. json_content should be a JSON object (dict)."""
     url = f"{API_URL}/api/v1/schema/"
     payload = {"name": name}
     if description: payload["description"] = description
     if scope: payload["scope"] = scope
-    if yaml_content: payload["yaml_content"] = yaml_content
+    if json_content: payload["json_content"] = json_content
     if workspace: payload["workspace"] = workspace
     resp = requests.post(url, json=payload, headers=_auth_headers())
     return resp.json()
@@ -51,27 +51,27 @@ def get_schema_by_id(id: int) -> dict:
 
 # Schema: Update schema (PUT)
 @mcp.tool()
-def update_schema(id: int, name: str, description: str = None, scope: int = None, yaml_content: str = None, workspace: int = None) -> dict:
-    """Update a schema (full update)"""
+def update_schema(id: int, name: str, description: str = None, scope: int = None, json_content: dict = None, workspace: int = None) -> dict:
+    """Update a schema (full update). json_content should be a JSON object (dict)."""
     url = f"{API_URL}/api/v1/schema/{id}/"
     payload = {"name": name}
     if description: payload["description"] = description
     if scope: payload["scope"] = scope
-    if yaml_content: payload["yaml_content"] = yaml_content
+    if json_content: payload["json_content"] = json_content
     if workspace: payload["workspace"] = workspace
     resp = requests.put(url, json=payload, headers=_auth_headers())
     return resp.json()
 
 # Schema: Partial update (PATCH)
 @mcp.tool()
-def patch_schema(id: int, name: str = None, description: str = None, scope: int = None, yaml_content: str = None, workspace: int = None) -> dict:
-    """Partially update a schema"""
+def patch_schema(id: int, name: str = None, description: str = None, scope: int = None, json_content: dict = None, workspace: int = None) -> dict:
+    """Partially update a schema. json_content should be a JSON object (dict)."""
     url = f"{API_URL}/api/v1/schema/{id}/"
     payload = {}
     if name: payload["name"] = name
     if description: payload["description"] = description
     if scope: payload["scope"] = scope
-    if yaml_content: payload["yaml_content"] = yaml_content
+    if json_content: payload["json_content"] = json_content
     if workspace: payload["workspace"] = workspace
     resp = requests.patch(url, json=payload, headers=_auth_headers())
     return resp.json()
